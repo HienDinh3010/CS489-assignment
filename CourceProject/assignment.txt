@@ -1,1 +1,11 @@
 Course Project - Task 1 - Problem Statement
+
+Name: Food Recipe Website
+
+In homepage, user can see Recipe Search features and Favourites.
+User can see list of food recipe based on food category.
+A food recipe has image and title.
+User can search recipe based on food name.
+User can click on food image to view the recipe detail on a popup.
+User can add food recipe to favorite.
+User can view their favorited food recipe when clicks on Favourites tab.
