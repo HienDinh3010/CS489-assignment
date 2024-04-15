@@ -1,5 +1,6 @@
 package cs489.apsd.dentistsurgeriesappointmentsmanagement.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -44,6 +45,6 @@ public class Patient {
     @Temporal(value = TemporalType.DATE)
     private Date dateOfBirth;
 
-    @OneToMany(mappedBy = "patient")
+    @OneToMany(mappedBy = "patient", cascade = CascadeType.ALL)
     private List<Appointment> appointments;
 }

@@ -1,5 +1,6 @@
 package cs489.apsd.dentistsurgeriesappointmentsmanagement.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -21,6 +22,10 @@ public class Address {
     private String city;
 
     private String zipCode;
+
+    @OneToOne(mappedBy = "address", fetch = FetchType.LAZY)
+    @JsonIgnore // Exclude address from JSON response
+    private Patient patient;
 
     public Address(String street, String city, String zipCode) {
         this.street = street;

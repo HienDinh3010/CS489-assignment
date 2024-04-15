@@ -14,7 +14,8 @@ import java.time.LocalDateTime;
 import java.util.Date;
 
 @SpringBootApplication
-public class DentistSurgeriesAppointmentsManagementApplication implements CommandLineRunner {
+public class DentistSurgeriesAppointmentsManagementApplication implements CommandLineRunner
+{
 
     private AppointmentService appointmentService;
 
@@ -63,13 +64,13 @@ public class DentistSurgeriesAppointmentsManagementApplication implements Comman
         dentistService.add(helen);
         dentistService.add(robin);
 
-        Surgery s15 = new Surgery("S15", new Address("124 Burlington", "Iowa", "52556"),
+        Surgery s15 = new Surgery("S15", new Address("12415 Burlington", "Iowa", "52556"),
                 "(641) 233-9115");
 
         Surgery s10 = new Surgery("S10", new Address("10 Burlington", "Iowa", "52556"),
                 "(641) 233-9110");
 
-        Surgery s13 = new Surgery("S13", new Address("124 Burlington", "Iowa", "52556"),
+        Surgery s13 = new Surgery("S13", new Address("12413 Burlington", "Iowa", "52556"),
                 "(641) 233-9113");
 
         surgeryService.add(s15);
@@ -83,10 +84,10 @@ public class DentistSurgeriesAppointmentsManagementApplication implements Comman
                 new Address("001234 Main", "Iowa", "52556"), new Date(96, 0, 23));
 
         Patient ian = new Patient("Ian", "Mackay", "(641) 233-9333", "ian@gmail.com",
-                new Address("11101 Main", "Iowa", "52556"), new Date(95, 0, 24));
+                new Address("21101 Ian Main", "Iowa", "52556"), new Date(95, 0, 24));
 
         Patient john = new Patient("John", "Walker", "(641) 233-3333", "john@gmail.com",
-                new Address("11101 Main", "Iowa", "52556"), new Date(99, 0, 23));
+                new Address("11101 John Main", "Iowa", "52556"), new Date(99, 0, 23));
 
         patientService.add(gillian);
         patientService.add(jill);
