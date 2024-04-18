@@ -17,10 +17,6 @@ public class RoleService {
         this.roleRepository = roleRepository;
     }
 
-    public Optional<Role> findByName(String name) {
-        return roleRepository.findByName(name);
-    }
-
     public void save(Role role) {
         roleRepository.save(role);
     }

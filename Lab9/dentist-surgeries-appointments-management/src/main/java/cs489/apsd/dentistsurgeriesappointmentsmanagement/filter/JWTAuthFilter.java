@@ -1,55 +1,74 @@
 package cs489.apsd.dentistsurgeriesappointmentsmanagement.filter;
 
-import cs489.apsd.dentistsurgeriesappointmentsmanagement.service.DSAMUserDetailsService;
+import cs489.apsd.dentistsurgeriesappointmentsmanagement.utils.JwtUtilityService;
+import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Date;
+import java.util.List;
 
 @Component
 public class JWTAuthFilter extends OncePerRequestFilter {
-    private DSAMUserDetailsService dsamUserDetailsService;
-    private JWTManagementUtilityService jwtManagementUtilityService;
 
-    public JWTAuthFilter(DSAMUserDetailsService dsamUserDetailsService,
-                         JWTManagementUtilityService jwtManagementUtilityService) {
-        this.dsamUserDetailsService = dsamUserDetailsService;
-        this.jwtManagementUtilityService = jwtManagementUtilityService;
+    @Autowired
+    private JwtUtilityService jwtMgmtUtilityService;
+
+    @Override
+    @SuppressWarnings("null")
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+            throws ServletException, IOException {
+        
+        // Look for the Authorizataion header
+        String authorizationHeader = request.getHeader("Authorization");
+        if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            return;
+        }
+
+        // Extract the JWT token
+        String jwtToken = authorizationHeader.substring(7);
+        Claims claims = jwtMgmtUtilityService.extractAllClaims(jwtToken);
+        String username = claims.getSubject();
+        Date expiration = claims.getExpiration();
+        if (username == null || expiration == null || expiration.before(new Date())) {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            return;
+        }
+
+        // Setup the security context
+        @SuppressWarnings("unchecked")
+        List<String> roleNames = claims.get("roles", List.class);
+        String[] roles = roleNames.toArray(new String[0]);
+        UserDetails userDetails = User.withUsername(username)
+                .password("doesn't like empty").roles(roles).build();
+        UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(userDetails, null,
+                userDetails.getAuthorities());
+        token.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+        SecurityContextHolder.getContext().setAuthentication(token);
+
+        // Continue the filter chain
+        filterChain.doFilter(request, response);
     }
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        String authorizationHeader = request.getHeader("Authorization");
-        // Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJhbmEuYWRtaW4iLCJleHAiOjE2NTE0MzUwODEsImlhdCI6MTY1MTM5OTA4MX0.aPH-bBsaRETUip91m3y3_UTR_EwFFbIpkyOdKSTgM70KT0a7v0uAYh4NtnFqvwEgCN7kuR8MDO5VB3rktBAwpA
-        String jwtToken = null;
-        String username = null;
-        if(authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
-            jwtToken = authorizationHeader.substring(7);
-            username = jwtManagementUtilityService.extractUsername(jwtToken);
-        }
-        if(username != null
-                && SecurityContextHolder.getContext().getAuthentication() == null) {
-            UserDetails userDetails = dsamUserDetailsService.loadUserByUsername(username);
-            if(jwtManagementUtilityService.validateToken(jwtToken, userDetails)) {
-                UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(userDetails,
-                        null, userDetails.getAuthorities());
-                usernamePasswordAuthenticationToken
-                        .setDetails(
-                                new WebAuthenticationDetailsSource()
-                                        .buildDetails(request)
-                        );
-                SecurityContextHolder.getContext()
-                        .setAuthentication(usernamePasswordAuthenticationToken);
-            }
-        }
-        filterChain.doFilter(request, response);
+    @SuppressWarnings("null")
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        
+        // Do not apply the filter to the login URI
+        var uri = new AntPathRequestMatcher("/adsweb/api/v1/login");
+        return uri.matches(request);
     }
 }
