@@ -2,6 +2,7 @@ package cs489.apsd.dentistsurgeriesappointmentsmanagement.config;
 
 import cs489.apsd.dentistsurgeriesappointmentsmanagement.filter.JWTAuthFilter;
 import cs489.apsd.dentistsurgeriesappointmentsmanagement.service.DSAMUserDetailsService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -20,14 +21,12 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @Configuration
 @EnableWebSecurity
 public class DSAMWebApiSecurityConfig {
-    private DSAMUserDetailsService dsamUserDetailsService;
-    private JWTAuthFilter jwtAuthFilter;
 
-    public DSAMWebApiSecurityConfig(DSAMUserDetailsService dsamUserDetailsService,
-                                    JWTAuthFilter jwtAuthFilter) {
-        this.dsamUserDetailsService = dsamUserDetailsService;
-        this.jwtAuthFilter = jwtAuthFilter;
-    }
+    @Autowired
+    private DSAMUserDetailsService dsamUserDetailsService;
+
+    @Autowired
+    private JWTAuthFilter jwtAuthFilter;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
@@ -35,31 +34,28 @@ public class DSAMWebApiSecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(
                         auth -> {
-                            auth.requestMatchers("/citylibrary/api/v1/service/public/**").permitAll()
-                                    .requestMatchers("/citylibrary/api/v1/publisher/**").authenticated();
-                        }
-                )
-                .sessionManagement(session->session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                            auth
+                                    .requestMatchers("adsweb/api/v1/login").permitAll()
+                                    .requestMatchers("adsweb/api/vi/address").permitAll()
+                                    .requestMatchers("adsweb/api/vi/patients").permitAll()
+                                    .requestMatchers("adsweb/api/v1/patients/**").permitAll();
+                        })
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
 
     @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
-
-    @Bean
-    public AuthenticationProvider authenticationProvider(){
-        DaoAuthenticationProvider authenticationProvider=new DaoAuthenticationProvider();
+    public AuthenticationProvider authenticationProvider() {
+        DaoAuthenticationProvider authenticationProvider = new DaoAuthenticationProvider();
         authenticationProvider.setUserDetailsService(dsamUserDetailsService);
         authenticationProvider.setPasswordEncoder(passwordEncoder());
         return authenticationProvider;
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
-        return config.getAuthenticationManager();
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
     }
 }
