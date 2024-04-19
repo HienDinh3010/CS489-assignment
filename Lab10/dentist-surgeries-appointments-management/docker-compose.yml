@@ -1,32 +1,32 @@
 version: '3.8'
 
-# Define services
 services:
-  # App backend service
-  app-server:
-    # Configuration for building the docker image for the backend service
-    build:
-      context: . # Use an image built from the specified dockerfile in the `springboot-app-server` directory.
-      dockerfile: Dockerfile
-    ports:
-      - "8081:8080" # Forward the exposed port 4000 on the container to port 4000 on the host machine
+  api_service:
+    build: .
     restart: always
+    ports:
+      - 8080:8080
+    networks:
+      - springapimysql-net
+    environment:
+      - spring.datasource.url=jdbc:mysql://mysqldb:3306/dentistdb
     depends_on:
-      - db # This service depends on mysql. Start that first.
-    environment: # Pass environment variables to the service
-      SPRING_DATASOURCE_URL: jdbc:mysql://db/dentistdb
-      SPRING_DATASOURCE_USERNAME: root
-      SPRING_DATASOURCE_PASSWORD: cs544
+      - mysqldb
 
+    volumes:
+      - .m2:/root/.m2
 
-  # Database Service (Mysql)
-  db:
-    image: mysql:8.0
-    ports:
-      - "3307:3306"
+  mysqldb:
+    image: "mysql:8.0"
     restart: always
+    ports:
+      - 3307:3306
+    networks:
+      - springapimysql-net
     environment:
       MYSQL_DATABASE: dentistdb
       MYSQL_USER: root
       MYSQL_PASSWORD: cs544
       MYSQL_ROOT_PASSWORD: cs544
+networks:
+  springapimysql-net:
